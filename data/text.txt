@@ -1,0 +1,12 @@
+cc cc
+aa aa
+AA A4
+BB BB
+aa a1
+qq q1
+QQ Q2
+qq q3
+AA A2
+aa a3
+aB BB
+Ba aa
