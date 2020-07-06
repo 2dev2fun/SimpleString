@@ -67,28 +67,79 @@ TEST_CASE("String", "[String]") {
 	REQUIRE(a == a_ref);
 	REQUIRE(b == b_ref);
 
-	String aa = std::move(a);
-	String bb = std::move(b);
+	String a_append = std::move(a);
+	String b_append = std::move(b);
 
-	REQUIRE(aa == a_ref);
-	REQUIRE(bb == b_ref);
+	REQUIRE(a_append == a_ref);
+	REQUIRE(b_append == b_ref);
 
 	char const* append = " append";
 
-	aa.append(append);
-	bb.append(append);
+	a_append.append(append);
+	b_append.append(append);
 
-	REQUIRE(aa == (std::string(a_ref) + append).c_str());
-	REQUIRE(bb == (std::string(b_ref) + append).c_str());
+	REQUIRE(a_append == (std::string(a_ref) + append).c_str());
+	REQUIRE(b_append == (std::string(b_ref) + append).c_str());
 
-	REQUIRE(aa.size() == std::strlen(a_ref) + std::strlen(append));
-	REQUIRE(bb.size() == std::strlen(b_ref) + std::strlen(append));
+	REQUIRE(a_append.size() == std::strlen(a_ref) + std::strlen(append));
+	REQUIRE(b_append.size() == std::strlen(b_ref) + std::strlen(append));
 
 	String a_concatenate = String(a_ref) + String(a_ref);
 	String b_concatenate = String(b_ref) + String(b_ref);
 
 	REQUIRE(a_concatenate == (std::string(a_ref) + std::string(a_ref)).c_str());
 	REQUIRE(b_concatenate == (std::string(b_ref) + std::string(b_ref)).c_str());
+
+	String a_resize = a_append;
+	String b_resize = b_append;
+
+	REQUIRE(a_resize.size() == std::strlen(a_ref) + std::strlen(append));
+	REQUIRE(b_resize.size() == std::strlen(b_ref) + std::strlen(append));
+
+	const size_t new_size = 300;
+
+	a_resize.resize(new_size);
+	b_resize.resize(new_size);
+
+	REQUIRE(a_resize.size() == new_size);
+	REQUIRE(b_resize.size() == new_size);
+
+	String a1 = "a";
+	String a2 = "aa";
+	String a3 = "aaa";
+
+	REQUIRE((a1 < a2) == true);
+	REQUIRE((a2 > a1) == true);
+
+	REQUIRE((a1 > a2) == false);
+	REQUIRE((a2 < a1) == false);
+
+	REQUIRE((a1 <= a1) == true);
+	REQUIRE((a1 >= a1) == true);
+
+	REQUIRE((a2 <= a1) == false);
+	REQUIRE((a1 >= a2) == false);
+
+	String a_compare = a_ref;
+	String b_compare = b_ref;
+
+	REQUIRE((a_compare < b_compare) == true);
+	REQUIRE((b_compare > a_compare) == true);
+
+	REQUIRE((a_compare <= a_compare) == true);
+	REQUIRE((b_compare <= b_compare) == true);
+
+	REQUIRE((a_compare >= a_compare) == true);
+	REQUIRE((b_compare >= b_compare) == true);
+
+	REQUIRE((a_compare == a_compare) == true);
+	REQUIRE((b_compare == b_compare) == true);
+
+	REQUIRE((a_compare == b_compare) == false);
+	REQUIRE((b_compare == a_compare) == false);
+
+	REQUIRE((a_compare != b_compare) == true);
+	REQUIRE((b_compare != a_compare) == true);
 }
 
 } // namespace simple

@@ -26,16 +26,16 @@ size_t next_capacity(size_t capacity) {
 
 class String {
 public:
-	String() noexcept : sso(true) {
+	String() : sso(true) {
 		base.fake.size   =   0;
 		base.fake.str[0] = '\0';
 	}
 
-	String(char const* text) noexcept : String(text, std::strlen(text)) {}
+	String(char const* text) : String(text, std::strlen(text)) {}
 
-	String(String const& string) noexcept : String(string.data(), string.size()) {}
+	String(String const& string) : String(string.data(), string.size()) {}
 
-	String(String&& other) noexcept : String() { swap(other); }
+	String(String&& other) : String() { swap(other); }
 
 	~String() {
 		if (!sso && base.real.ptr) {
@@ -54,15 +54,26 @@ public:
 		return *this;
 	}
 
-	char& operator[](uint32_t index) noexcept {
+	//String& operator=(String const& other) {
+		//String string(other);
+		//swap(string);
+		//return *this;
+	//}
+
+	//String& operator=(String&& other) {
+		//swap(other);
+		//return *this;
+	//}
+
+	char& operator[](uint32_t index) {
 		return *(this->data() + index);
 	}
 
-	char const& operator[](uint32_t index) const noexcept {
+	char const& operator[](uint32_t index) const {
 		return *(this->data() + index);
 	}
 
-	char* data() noexcept {
+	char* data() {
 		if (sso) {
 			return base.fake.str;
 		} else {
@@ -70,7 +81,7 @@ public:
 		}
 	}
 
-	char const* data() const noexcept {
+	char const* data() const {
 		if (sso) {
 			return base.fake.str;
 		} else {
@@ -78,7 +89,7 @@ public:
 		}
 	}
 
-	size_t size() const noexcept {
+	size_t size() const {
 		if (sso) {
 			return base.fake.size;
 		} else {
@@ -86,7 +97,7 @@ public:
 		}
 	}
 
-	size_t capacity() const noexcept {
+	size_t capacity() const {
 		if (sso) {
 			return sso_capacity;
 		} else {
@@ -151,23 +162,55 @@ public:
 		if (sso && new_size < sso_capacity) {
 			base.fake.size = new_size;
 			base.fake.str[new_size] = '\0';
+
+			return;
+		}
+
+		if (sso && new_size >= sso_capacity) {
+			size_t capacity = new_size + 1;
+
+			char* ptr = static_cast<char*>(std::malloc(capacity));
+
+			if (ptr == nullptr) {
+				throw std::runtime_error("std::malloc returned nullptr!");
+			}
+
+			std::memcpy(ptr, base.fake.str, base.fake.size + 1);
+
+			base.real.capacity = capacity;
+			base.real.ptr      = ptr;
+			base.real.size     = new_size;
+
+			sso = false;
+
 			return;
 		}
 
 		if (new_size < base.real.capacity) {
 			base.real.size = new_size;
 			base.real.ptr[new_size] = '\0';
+
 			return;
 		}
 
-		char* ptr = static_cast<char*>(std::realloc(base.real.ptr, string::next_capacity(new_size + 1)));
+		if (new_size >= base.real.capacity) {
+			size_t capacity = string::next_capacity(new_size + 1);
 
-		if (ptr == nullptr) {
-			throw std::runtime_error("realloc returned nullptr!");
+			char* ptr = static_cast<char*>(std::realloc(base.real.ptr, capacity));
+
+			if (ptr == nullptr) {
+				throw std::runtime_error("std::realloc returned nullptr!");
+			}
+
+			base.real.ptr           = ptr;
+			base.real.ptr[new_size] = '\0';
+			base.real.capacity      = capacity;
+			base.real.size          = new_size;
+
+			return;
 		}
 
-		base.real.ptr = ptr;
-		base.real.ptr[new_size] = '\0';
+		throw std::runtime_error("Undefined case!");
 	}
 
 	void append(char const* text, size_t size) {
@@ -235,7 +278,7 @@ public:
 		append(string.data(), string.size());
 	}
 
-	String& to_lower() noexcept {
+	String& to_lower() {
 		char diff = 'a' - 'A';
 
 		char min = 'A';
@@ -252,7 +295,7 @@ public:
 		return *this;
 	}
 
-	String& to_upper() noexcept {
+	String& to_upper() {
 		auto diff = 'a' - 'A';
 
 		auto min = 'a';
@@ -279,7 +322,7 @@ private:
 			char* ptr = static_cast<char*>(std::malloc(capacity));
 
 			if (ptr == nullptr) {
-				throw std::runtime_error("malloc returned nullptr!");
+				throw std::runtime_error("std::malloc returned nullptr!");
 			}
 
 			std::memcpy(ptr, text, size + 1);
@@ -290,7 +333,7 @@ private:
 		}
 	}
 
-	void swap(String& string) noexcept {
+	void swap(String& string) {
 		std::swap(base, string.base);
 		std::swap(sso,  string.sso);
 	}
@@ -315,7 +358,7 @@ private:
 	static const size_t sso_capacity = sizeof(BaseString) - 1;
 };
 
-String operator+(String const& left, String const& right) noexcept {
+String operator+(String const& left, String const& right) {
 	String string;
 
 	string.append(left);
@@ -324,33 +367,45 @@ String operator+(String const& left, String const& right) noexcept {
 	return string;
 }
 
-bool operator==(String const& left, char const* right) noexcept {
+bool operator==(String const& left, char const* right) {
 	return !std::strcmp(left.data(), right);
 }
 
-bool operator==(char const* left, String const& right) noexcept {
+bool operator==(char const* left, String const& right) {
 	return right == left;
 }
 
-bool operator==(String const& left, String const& right) noexcept {
+bool operator==(String const& left, String const& right) {
 	if (left.size() != right.size()) { return false; }
 	return !std::strcmp(left.data(), right.data());
 }
 
-bool operator<(String const& left, String const& right) noexcept {
-	return std::strncmp(left.data(), right.data(), left.size()) < 0;
+bool operator!=(String const& left, char const* right) {
+	return !(left == right);
 }
 
-bool operator<=(String const& left, String const& right) noexcept {
-	return std::strncmp(left.data(), right.data(), left.size()) <= 0;
+bool operator!=(char const* left, String const& right) {
+	return !(left == right);
 }
 
-bool operator>(String const& left, String const& right) noexcept {
-	return std::strncmp(left.data(), right.data(), left.size()) > 0;
+bool operator!=(String const& left, String const& right) {
+	return !(left == right);
 }
 
-bool operator>=(String const& left, String const& right) noexcept {
-	return std::strncmp(left.data(), right.data(), left.size()) >= 0;
+bool operator<(String const& left, String const& right) {
+	return std::strcmp(left.data(), right.data()) < 0;
+}
+
+bool operator<=(String const& left, String const& right) {
+	return std::strcmp(left.data(), right.data()) <= 0;
+}
+
+bool operator>(String const& left, String const& right) {
+	return std::strcmp(left.data(), right.data()) > 0;
+}
+
+bool operator>=(String const& left, String const& right) {
+	return std::strcmp(left.data(), right.data()) >= 0;
 }
 
 std::ostream& operator<<(std::ostream& out, String const& string) {
