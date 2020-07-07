@@ -35,7 +35,7 @@ public:
 
 	String(String const& string) : String(string.data(), string.size()) {}
 
-	String(String&& other) : String() { swap(other); }
+	String(String&& other) noexcept : String() { swap(other); }
 
 	~String() {
 		if (!sso && base.real.ptr) {
@@ -43,7 +43,7 @@ public:
 		}
 	}
 
-	String& operator=(String other) {
+	String& operator=(String other) noexcept {
 		swap(other);
 		return *this;
 	}
@@ -60,7 +60,7 @@ public:
 		//return *this;
 	//}
 
-	//String& operator=(String&& other) {
+	//String& operator=(String&& other) noexcept {
 		//swap(other);
 		//return *this;
 	//}
